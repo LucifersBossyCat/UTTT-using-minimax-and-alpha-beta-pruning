@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ultimate Tic-Tac-Toe · Floral</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Tokens: Pastel & Floral ─────────────────────────────────── */
+    :root {
+      --bg:        #faf7f2;
+      --bg2:       #f5f0e6;
+      --bg3:       #ede6d8;
+      --surface:   #ffffff;
+      --border:    #e2d5c8;
+      --border2:   #cbbcaa;
+
+      --sage:      #b5c9b8;
+      --sage2:     #8fa894;
+      
+      --rose:      #f4b3c2;
+      --rose2:     #d97a8c;
+      --daisy:     #fae089;
+      --daisy2:    #d4a83c;
+
+      --text:      #5c544d;
+      --text-dim:  #8c8279;
+      --text-mute: #bcaea1;
+
+      --font:      'Quicksand', system-ui, sans-serif;
+      --mono:      'DM Mono', monospace;
+
+      --board-size:    min(560px, 95vw);
+      --gap-macro:     10px;
+      --gap-micro:     4px;
+      --board-pad:     14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem 4rem;
+    }
+
+    /* ── Decorative SVG art pieces (Vines) ───────────────────────── */
+    .art-corner { position: fixed; pointer-events: none; opacity: 0.3; z-index: 0; }
+    .art-corner.tl { top: 0; left: 0; }
+    .art-corner.br { bottom: 0; right: 0; transform: rotate(180deg); }
+
+    header, #setup-panel, #game-area, #result-overlay { position: relative; z-index: 1; }
+
+    header { text-align: center; margin-bottom: 2rem; padding-top: 0.5rem; }
+    .header-art { margin-bottom: 0.8rem; }
+    header h1 { font-family: var(--font); font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+    .header-sub { font-size: 0.75rem; color: var(--sage2); letter-spacing: 0.16em; text-transform: uppercase; margin-top: 0.4rem; font-weight: 600; }
+
+    .card { background: var(--surface); border: 2px solid var(--border); border-radius: 20px; box-shadow: 0 4px 20px rgba(130, 110, 90, 0.05); }
+
+    /* ── Setup Panel ─────────────────────────────────────────────── */
+    #setup-panel { width: 100%; max-width: 400px; padding: 2rem; margin: 0 auto 1.5rem; }
+    #setup-panel h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.6rem; text-align: center; }
+    .field { margin-bottom: 1.1rem; }
+    .field label { display: block; font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.45rem; font-weight: 600; }
+
+    /* Symbol picker */
+    .sym-btns { display: flex; gap: 0.6rem; }
+    .sym-btn { flex: 1; padding: 1rem 0.5rem; border-radius: 16px; border: 2px solid var(--border); background: var(--bg3); color: var(--text-dim); cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+    .sym-btn small { font-size: 0.65rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; }
+    .sym-btn:hover { border-color: var(--border2); background: var(--bg2); }
+    
+    .sym-btn.active-rose { border-color: var(--rose); background: #fdf3f5; box-shadow: 0 0 0 3px rgba(244,179,194,0.3); }
+    .sym-btn.active-rose small { color: var(--rose2); }
+    .sym-btn.active-daisy { border-color: var(--daisy); background: #fefcf3; box-shadow: 0 0 0 3px rgba(250,224,137,0.4); }
+    .sym-btn.active-daisy small { color: var(--daisy2); }
+
+    select { width: 100%; background: var(--bg3); border: 2px solid var(--border); border-radius: 12px; color: var(--text); padding: 0.7rem 1rem; font-size: 0.9rem; font-family: var(--font); font-weight: 500; outline: none; appearance: none; cursor: pointer; }
+    select:focus { border-color: var(--sage); }
+
+    .start-btn { width: 100%; margin-top: 1.6rem; padding: 0.9rem; border-radius: 14px; border: none; background: var(--sage2); color: #fff; font-family: var(--font); font-weight: 700; font-size: 1rem; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+    .start-btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(143, 168, 148, 0.4); }
+    
+    /* Engine Controls */
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text); font-weight: 600;}
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; inset: 0; background: var(--bg3); border: 2px solid var(--border); border-radius: 24px; cursor: pointer; transition: 0.2s; }
+    .slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; border-radius: 50%; background: var(--text-mute); transition: 0.2s; }
+    .switch input:checked + .slider { background: #eef5ef; border-color: var(--sage); }
+    .switch input:checked + .slider::before { transform: translateX(20px); background: var(--sage2); box-shadow: 0 0 5px var(--sage2); }
+
+    /* ── Game Layout ─────────────────────────────────────────────── */
+    #game-area { display: none; width: 100%; }
+    .layout { display: flex; gap: 1.5rem; align-items: flex-start; width: 100%; max-width: 900px; margin: 0 auto; }
+
+    /* Removed the problematic math gradients. Relying on bg contrast and gap instead. */
+    #board {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap-macro); width: var(--board-size); padding: var(--board-pad); border-radius: 24px; background: var(--bg2); border: 2px solid var(--border); box-shadow: 0 8px 30px rgba(150, 140, 130, 0.15);
+    }
+
+    .small-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap-micro); padding: 6px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface); transition: all 0.3s ease; position: relative; overflow: hidden; aspect-ratio: 1; }
+    
+    /* Strong glow for the active board area */
+    .small-board.active { border-color: var(--sage); background: #fdfefd; box-shadow: 0 0 18px rgba(143, 168, 148, 0.45), inset 0 0 10px rgba(143, 168, 148, 0.15); }
+    .small-board.inactive { opacity: 0.5; filter: grayscale(0.3); }
+
+    /* Won sub-board glows */
+    .small-board.won-rose { background: #fff0f3; border-color: var(--rose); box-shadow: 0 0 15px rgba(244, 179, 194, 0.4); }
+    .small-board.won-daisy { background: #fffcf0; border-color: var(--daisy); box-shadow: 0 0 15px rgba(250, 224, 137, 0.4); }
+    .small-board.won-d { background: var(--bg3); border-color: var(--border2); opacity: 0.6; }
+    .small-board .macro-sym { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2; opacity: 0.9; }
+
+    .cell { aspect-ratio: 1; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: default; transition: all 0.2s ease; position: relative; }
+    
+    /* Playable cell glows */
+    .cell.playable { cursor: pointer; border-color: var(--sage); background: #ffffff; }
+    .cell.playable:hover { background: #eef5ef; transform: scale(1.08); box-shadow: 0 0 12px rgba(143, 168, 148, 0.6); z-index: 2; border-color: var(--sage2); }
+    .cell.last-move { border-color: var(--sage2) !important; background: #e8f0ea; box-shadow: inset 0 0 8px rgba(143, 168, 148, 0.2); }
+
+    /* SVGs Glows */
+    .cell svg { width: 65%; height: 65%; }
+    .rose-svg { filter: drop-shadow(0 0 6px rgba(217, 122, 140, 0.7)); }
+    .daisy-svg { filter: drop-shadow(0 0 6px rgba(212, 168, 60, 0.7)); }
+
+    /* ── Sidebar ─────────────────────────────────────────────────── */
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; min-width: 190px; flex-shrink: 0; }
+    .panel { padding: 1.2rem; }
+    .panel-title { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-mute); margin-bottom: 0.8rem; font-weight: 700; }
+
+    #status-text { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .turn-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.4rem; vertical-align: middle; transition: all 0.3s; }
+    /* Turn indicator glow */
+    .turn-dot.rose-dot { background: var(--rose2); box-shadow: 0 0 10px var(--rose2); }
+    .turn-dot.daisy-dot { background: var(--daisy2); box-shadow: 0 0 10px var(--daisy2); }
+
+    /* Score */
+    .score-row { display: flex; justify-content: space-between; align-items: center; padding: 0.3rem 0; font-size: 0.9rem; font-weight: 600;}
+    .score-sym { display: flex; align-items: center; gap: 0.5rem; }
+    .score-sym svg { width: 18px; height: 18px; }
+    .score-val { font-family: var(--mono); font-size: 1.1rem; text-shadow: 0 0 8px rgba(0,0,0,0.05); }
+    .score-val.rose-val { color: var(--rose2); }
+    .score-val.daisy-val { color: var(--daisy2); }
+
+    .macro-mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .macro-mini-cell { aspect-ratio: 1; border-radius: 6px; border: 1.5px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+    .macro-mini-cell svg { width: 60%; height: 60%; }
+    .macro-mini-cell.rose-won { background: #fff0f3; border-color: var(--rose); box-shadow: 0 0 8px rgba(244, 179, 194, 0.4); }
+    .macro-mini-cell.daisy-won { background: #fffcf0; border-color: var(--daisy); box-shadow: 0 0 8px rgba(250, 224, 137, 0.4); }
+    .macro-mini-cell.active-zone { border-color: var(--sage); box-shadow: 0 0 8px rgba(181, 201, 184, 0.5); }
+
+    .action-btn { width: 100%; padding: 0.7rem; border-radius: 10px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-size: 0.85rem; font-family: var(--font); font-weight: 600; cursor: pointer; transition: all 0.15s; margin-bottom: 0.5rem; }
+    .action-btn:last-child { margin-bottom: 0; }
+    .action-btn:hover { border-color: var(--sage); background: #f2f7f3; color: var(--sage2); box-shadow: 0 2px 8px rgba(181, 201, 184, 0.3); }
+    .action-btn.primary { background: #f2f7f3; border-color: var(--sage); color: var(--sage2); }
+
+    /* Result overlay */
+    #result-overlay { display: none; position: fixed; inset: 0; background: rgba(250,247,242,0.85); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; }
+    #result-overlay.show { display: flex; }
+    .result-box { text-align: center; padding: 3rem; max-width: 360px; width: 90%; box-shadow: 0 10px 40px rgba(130, 110, 90, 0.1); border-color: var(--border2); }
+    .result-icon { margin-bottom: 1rem; display: flex; justify-content: center; }
+    .result-box h2 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .result-box h2.rose-result { color: var(--rose2); text-shadow: 0 0 15px rgba(217, 122, 140, 0.3); }
+    .result-box h2.daisy-result { color: var(--daisy2); text-shadow: 0 0 15px rgba(212, 168, 60, 0.3); }
+    .result-box p { color: var(--text-dim); margin-bottom: 2rem; font-weight: 500; }
+    .btn-play-again { padding: 0.8rem 1.5rem; border-radius: 12px; font-size: 0.9rem; font-family: var(--font); font-weight: 700; cursor: pointer; border: none; background: var(--sage2); color: #fff; transition: all 0.2s; box-shadow: 0 4px 15px rgba(143, 168, 148, 0.4); }
+    .btn-play-again:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(143, 168, 148, 0.6); }
+
+    @media (max-width: 700px) {
+      .layout { flex-direction: column; align-items: center; }
+      .sidebar { width: 100%; max-width: var(--board-size); flex-direction: row; flex-wrap: wrap; }
+      .sidebar .panel { flex: 1; min-width: 150px; }
+    }
+  </style>
+</head>
+<body>
+
+<svg class="art-corner tl" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <path d="M0 200 C 50 150, 100 50, 200 0" stroke="#b5c9b8" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 40 140 C 60 120, 80 140, 60 160 C 40 180, 20 160, 40 140 Z" fill="#b5c9b8"/>
+  <path d="M 120 40 C 140 20, 160 40, 140 60 C 120 80, 100 60, 120 40 Z" fill="#b5c9b8"/>
+  <circle cx="80" cy="80" r="8" fill="#f4b3c2" filter="drop-shadow(0 0 4px rgba(244,179,194,0.8))"/>
+  <circle cx="150" cy="110" r="5" fill="#fae089" filter="drop-shadow(0 0 4px rgba(250,224,137,0.8))"/>
+</svg>
+<svg class="art-corner br" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <path d="M0 200 C 50 150, 100 50, 200 0" stroke="#b5c9b8" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 40 140 C 60 120, 80 140, 60 160 C 40 180, 20 160, 40 140 Z" fill="#b5c9b8"/>
+  <path d="M 120 40 C 140 20, 160 40, 140 60 C 120 80, 100 60, 120 40 Z" fill="#b5c9b8"/>
+</svg>
+
+<header>
+  <h1>Ultimate Tic-Tac-Toe</h1>
+  <div class="header-sub">Rose &amp; Daisy</div>
+</header>
+
+<div id="setup-panel" class="card">
+  <h2>Start a Garden</h2>
+  <div class="field">
+    <label>Play as</label>
+    <div class="sym-btns">
+      <button class="sym-btn active-rose" data-sym="X" onclick="selectSym('X')">
+        <svg viewBox="0 0 32 32" width="36" height="36" class="rose-svg" fill="none">
+          <path d="M16 28 C 16 28, 6 18, 10 10 C 12 6, 20 6, 22 10 C 26 18, 16 28, 16 28 Z" fill="#f4b3c2" stroke="#d97a8c" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M10 10 C 16 16, 22 10, 22 10" stroke="#d97a8c" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <small>Rose · First</small>
+      </button>
+      <button class="sym-btn" data-sym="O" onclick="selectSym('O')">
+        <svg viewBox="0 0 32 32" width="36" height="36" class="daisy-svg" fill="none">
+          <circle cx="16" cy="16" r="4" fill="#d4a83c" />
+          <path d="M16 10 C 13 4, 19 4, 16 10 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/>
+          <path d="M16 22 C 13 28, 19 28, 16 22 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/>
+          <path d="M10 16 C 4 13, 4 19, 10 16 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/>
+          <path d="M22 16 C 28 13, 28 19, 22 16 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/>
+          <path d="M11.7 11.7 C 7.5 7.5, 11.7 5.3, 11.7 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(45 11.7 11.7)"/>
+          <path d="M20.3 20.3 C 16 16, 20.3 14, 20.3 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(45 20.3 20.3)"/>
+          <path d="M20.3 11.7 C 24.5 7.5, 20.3 5.3, 20.3 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 20.3 11.7)"/>
+          <path d="M11.7 20.3 C 7.5 24.5, 11.7 26.7, 11.7 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 11.7 20.3)"/>
+        </svg>
+        <small>Daisy · Second</small>
+      </button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>AI Depth Limit</label>
+    <select id="time-select">
+      <option value="3">Fast (Depth 3)</option>
+      <option value="5" selected>Normal (Depth 5)</option>
+      <option value="7">Strong (Depth 7)</option>
+    </select>
+  </div>
+  <button class="start-btn" onclick="startGame()">Start game</button>
+</div>
+
+<div id="game-area">
+  <div class="layout">
+    <div id="board"></div>
+    <div class="sidebar">
+      <div class="panel card">
+        <div class="panel-title">Turn</div>
+        <div id="status-text"><span class="turn-dot rose-dot" id="turn-dot"></span><span id="status-msg">Your turn</span></div>
+      </div>
+      <div class="panel card">
+        <div class="panel-title">Score</div>
+        <div class="score-row"><span class="score-sym" id="score-rose-label">Rose</span><span class="score-val rose-val" id="score-rose">0</span></div>
+        <div class="score-row"><span class="score-sym">Daisy</span><span class="score-val daisy-val" id="score-daisy">0</span></div>
+        <div class="score-row"><span class="score-sym" style="color:var(--text-dim)">Draw</span><span class="score-val" id="score-draw" style="color:var(--text-dim)">0</span></div>
+      </div>
+      <div class="panel card">
+        <div class="panel-title">Macro Board</div>
+        <div class="macro-mini" id="macro-mini"></div>
+      </div>
+      <div class="panel card">
+        <button class="action-btn primary" onclick="newGameSameSettings()">↺ New game</button>
+        <button class="action-btn" onclick="reconfigure()">⚙ Settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="result-overlay">
+  <div class="result-box card">
+    <div class="result-icon" id="result-icon"></div>
+    <h2 id="result-title">Rose wins</h2>
+    <p id="result-sub">Beautifully played.</p>
+    <button class="btn-play-again" onclick="newGameSameSettings()">Play again</button>
+  </div>
+</div>
+
+<script>
+  function roseSVG(size = 26) { return `<svg viewBox="0 0 32 32" width="${size}" height="${size}" class="rose-svg" fill="none"><path d="M16 28 C 16 28, 6 18, 10 10 C 12 6, 20 6, 22 10 C 26 18, 16 28, 16 28 Z" fill="#f4b3c2" stroke="#d97a8c" stroke-width="2" stroke-linejoin="round"/><path d="M10 10 C 16 16, 22 10, 22 10" stroke="#d97a8c" stroke-width="2" stroke-linecap="round"/></svg>`; }
+  function daisySVG(size = 26) { return `<svg viewBox="0 0 32 32" width="${size}" height="${size}" class="daisy-svg" fill="none"><circle cx="16" cy="16" r="4" fill="#d4a83c" /><path d="M16 10 C 13 4, 19 4, 16 10 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/><path d="M16 22 C 13 28, 19 28, 16 22 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/><path d="M10 16 C 4 13, 4 19, 10 16 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/><path d="M22 16 C 28 13, 28 19, 22 16 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/><path d="M11.7 11.7 C 7.5 7.5, 11.7 5.3, 11.7 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(45 11.7 11.7)"/><path d="M20.3 20.3 C 16 16, 20.3 14, 20.3 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(45 20.3 20.3)"/><path d="M20.3 11.7 C 24.5 7.5, 20.3 5.3, 20.3 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 20.3 11.7)"/><path d="M11.7 20.3 C 7.5 24.5, 11.7 26.7, 11.7 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 11.7 20.3)"/></svg>`; }
+  function drawSVG(size = 26) { return `<svg viewBox="0 0 32 32" width="${size}" height="${size}" fill="none"><text x="16" y="22" text-anchor="middle" font-size="18" fill="#bcaea1" font-weight="bold">—</text></svg>`; }
+
+  let gameId = null; let humanSym = 'X'; let aiSym = 'O'; let scores = {X: 0, O: 0, D: 0}; let aiDepth = 5; let busy = false; window._lastState = null;
+
+  function selectSym(sym) {
+    humanSym = sym;
+    document.querySelectorAll('.sym-btn').forEach(b => {
+      b.className = 'sym-btn';
+      if (b.dataset.sym === sym) b.classList.add(sym === 'X' ? 'active-rose' : 'active-daisy');
+    });
+  }
+
+  async function startGame() {
+    aiDepth = parseInt(document.getElementById('time-select').value);
+    aiSym = humanSym === 'X' ? 'O' : 'X';
+    document.getElementById('setup-panel').style.display = 'none';
+    document.getElementById('game-area').style.display = 'block';
+
+    const resp = await fetch('/api/new_game', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ human_symbol: humanSym, depth: aiDepth })
+    });
+    const data = await resp.json();
+    gameId = data.game_id; window._lastState = data.state;
+    renderBoard(data.state); updateStatus(data.state);
+  }
+
+  function symSVG(sym, size) {
+    if (sym === 'X') return roseSVG(size);
+    if (sym === 'O') return daisySVG(size);
+    return drawSVG(size);
+  }
+
+  function renderBoard(state) {
+    const board = document.getElementById('board'); board.innerHTML = '';
+    const am = state.active_macro; const vm = new Set(state.valid_moves);
+    for (let m = 0; m < 9; m++) {
+      const sb = document.createElement('div'); sb.className = 'small-board';
+      const ms = state.macro[m];
+      if (!ms) { sb.classList.add((am === null || am === m) ? 'active' : 'inactive'); } 
+      else {
+        if (ms === 'X') sb.classList.add('won-rose'); else if (ms === 'O') sb.classList.add('won-daisy'); else sb.classList.add('won-d');
+        const big = document.createElement('div'); big.className = 'macro-sym'; big.innerHTML = ms === 'D' ? drawSVG(52) : symSVG(ms, 52); sb.appendChild(big);
+      }
+      for (let l = 0; l < 9; l++) {
+        const pos = m * 9 + l; const cell = document.createElement('div'); cell.className = 'cell';
+        if (state.cells[pos]) cell.innerHTML = symSVG(state.cells[pos], 22);
+        if (state.prev_move === pos) cell.classList.add('last-move');
+        if (!state.terminal && vm.has(pos) && state.turn === humanSym && !busy) {
+          cell.classList.add('playable'); cell.onclick = () => playMove(pos);
+        }
+        sb.appendChild(cell);
+      }
+      board.appendChild(sb);
+    }
+    updateMacroMini(state, am);
+  }
+
+  function updateMacroMini(state, am) {
+    const el = document.getElementById('macro-mini'); el.innerHTML = '';
+    for (let m = 0; m < 9; m++) {
+      const c = document.createElement('div'); c.className = 'macro-mini-cell';
+      const ms = state.macro[m];
+      if (ms === 'X') { c.classList.add('rose-won'); c.innerHTML = roseSVG(14); }
+      else if (ms === 'O') { c.classList.add('daisy-won'); c.innerHTML = daisySVG(14); }
+      else if (ms === 'D') { c.innerHTML = drawSVG(14); }
+      if (!ms && (am === null || am === m)) c.classList.add('active-zone');
+      el.appendChild(c);
+    }
+  }
+
+  function updateStatus(state) {
+    const dot = document.getElementById('turn-dot'); const msg = document.getElementById('status-msg');
+    if (state.terminal) return;
+    dot.className = 'turn-dot ' + (state.turn === 'X' ? 'rose-dot' : 'daisy-dot');
+    msg.textContent = state.turn === humanSym ? 'Your turn' : 'AI is thinking...';
+  }
+
+  async function playMove(pos) {
+    if (busy || !gameId) return; busy = true;
+    if (window._lastState) renderBoard({...window._lastState, valid_moves: []}); updateStatus({turn: aiSym});
+    const resp = await fetch('/api/move', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({game_id: gameId, pos}) });
+    const data = await resp.json(); busy = false;
+    if (data.error) { alert(data.error); return; }
+    window._lastState = data.state; renderBoard(data.state); updateStatus(data.state);
+    if (data.state.terminal) handleResult(data.state.terminal);
+  }
+
+  function handleResult(result) {
+    scores[result]++;
+    document.getElementById('score-rose').textContent = scores.X; document.getElementById('score-daisy').textContent = scores.O; document.getElementById('score-draw').textContent = scores.D;
+    const iconEl = document.getElementById('result-icon'); const title = document.getElementById('result-title'); const sub = document.getElementById('result-sub');
+    if (result === 'D') { iconEl.innerHTML = drawSVG(56); title.textContent = 'Draw'; title.style.color = 'var(--text-dim)'; sub.textContent = 'A peaceful tie.'; } 
+    else if (result === 'X') { iconEl.innerHTML = roseSVG(56); title.textContent = result===humanSym?'You win':'Rose wins'; title.className = 'rose-result'; sub.textContent = 'Beautifully played.'; } 
+    else { iconEl.innerHTML = daisySVG(56); title.textContent = result===humanSym?'You win':'Daisy wins'; title.className = 'daisy-result'; sub.textContent = 'Beautifully played.'; }
+    document.getElementById('result-overlay').classList.add('show');
+  }
+
+  async function newGameSameSettings() { document.getElementById('result-overlay').classList.remove('show'); await startGame(); }
+  function reconfigure() { document.getElementById('result-overlay').classList.remove('show'); document.getElementById('game-area').style.display = 'none'; document.getElementById('setup-panel').style.display = 'block'; gameId = null; busy = false; }
+</script>
+</body>
+</html>
