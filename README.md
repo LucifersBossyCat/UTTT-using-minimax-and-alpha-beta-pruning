@@ -1,4 +1,4 @@
-# Floral Ultimate Tic-Tac-Toe
+# Ultimate Tic-Tac-Toe
 
 A beautiful, pastel-themed implementation of **Ultimate Tic-Tac-Toe**, featuring a smart AI opponent powered by the Minimax algorithm with Alpha-Beta pruning. 
 
