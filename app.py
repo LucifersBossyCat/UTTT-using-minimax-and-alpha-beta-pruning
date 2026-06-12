@@ -93,6 +93,12 @@ def make_move():
     human_sym = game["human_sym"]
     ai_sym = game["ai_sym"]
 
+    # ── Validate the move ──────────────────────────────────────────
+    bot = minimax_ttt.MinimaxBot()
+    if pos not in bot.get_valid_moves(board, macro, game["prev_move"]):
+        return jsonify({"error": "Invalid move"}), 400
+    # ──────────────────────────────────────────────────────────────
+
     # --- 1. Process Human Move ---
     board[pos] = human_sym
     m = pos // 9
