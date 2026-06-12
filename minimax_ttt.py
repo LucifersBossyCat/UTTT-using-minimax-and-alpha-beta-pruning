@@ -19,7 +19,8 @@ class MinimaxBot:
         self.depth = depth
 
     def evaluate_small_box(self, box_list, player):
-        """Scores a single 3x3 box based on 3-in-a-row, 2-in-a-row, and 1-in-a-row."""
+        # basic line counting heuristic.
+        # these weights took forever to tune so the bot wouldn't just give away the macro board.
         score = 0
         opp = get_opponent(player)
 
@@ -45,12 +46,12 @@ class MinimaxBot:
         return score
 
     def evaluate_board(self, state, macro_state, player):
-        """Calculates total heuristic score of the board."""
         score = 0
-        # The macro board is worth 200x more than a single small board move
+        
+        # macro board control is infinitely more important than winning a random sub-board.
+        # hardcoding a massive multiplier here so the pruner prioritizes it.
         score += self.evaluate_small_box(macro_state, player) * 200
         
-        # Evaluate all 9 small boards
         for m in range(9):
             base = m * 9
             box_list = state[base:base+9]
@@ -59,11 +60,9 @@ class MinimaxBot:
         return score
 
     def get_valid_moves(self, state, macro_state, prev_move):
-        """Returns a list of valid indices (0-80)."""
         valid = []
         target_macro = prev_move % 9 if prev_move is not None else -1
 
-        # If free choice (first move, or sent to a finished macro)
         if target_macro == -1 or macro_state[target_macro] != ".":
             for m in range(9):
                 if macro_state[m] == ".":
@@ -72,7 +71,6 @@ class MinimaxBot:
                         if state[base + l] == ".":
                             valid.append(base + l)
         else:
-            # Constrained choice
             base = target_macro * 9
             for l in range(9):
                 if state[base + l] == ".":
@@ -80,7 +78,8 @@ class MinimaxBot:
         return valid
 
     def alpha_beta(self, state, macro_state, prev_move, depth, alpha, beta, maximizing_player, player, s_time):
-        """The core Minimax algorithm with Alpha-Beta Pruning."""
+        # pure minimax with a-b pruning. 
+        # doing this natively in python is slow, so the depth limit is strict to avoid timeouts.
         is_terminal = check_win(macro_state) != "."
         if depth == 0 or is_terminal:
             return self.evaluate_board(state, macro_state, player)
@@ -95,17 +94,14 @@ class MinimaxBot:
         if maximizing_player:
             max_eval = -math.inf
             for move in valid_moves:
-                # Simulate move
                 state[move] = current_turn
                 m = move // 9
                 old_macro = macro_state[m]
                 if old_macro == ".":
                     macro_state[m] = check_win(state[m*9 : m*9+9])
                 
-                # Recurse
                 eval = self.alpha_beta(state, macro_state, move, depth - 1, alpha, beta, False, player, s_time)
                 
-                # Undo move
                 state[move] = "."
                 macro_state[m] = old_macro
 
@@ -118,17 +114,14 @@ class MinimaxBot:
         else:
             min_eval = math.inf
             for move in valid_moves:
-                # Simulate move
                 state[move] = current_turn
                 m = move // 9
                 old_macro = macro_state[m]
                 if old_macro == ".":
                     macro_state[m] = check_win(state[m*9 : m*9+9])
                 
-                # Recurse
                 eval = self.alpha_beta(state, macro_state, move, depth - 1, alpha, beta, True, player, s_time)
                 
-                # Undo move
                 state[move] = "."
                 macro_state[m] = old_macro
 
@@ -139,7 +132,6 @@ class MinimaxBot:
             return min_eval
 
     def get_best_move(self, state, macro_state, prev_move, player):
-        """Entry point for the bot to pick a move."""
         best_score = -math.inf
         best_move = None
         alpha = -math.inf
@@ -149,17 +141,14 @@ class MinimaxBot:
         s_time = time.time()
 
         for move in valid_moves:
-            # Simulate move
             state[move] = player
             m = move // 9
             old_macro = macro_state[m]
             if old_macro == ".":
                 macro_state[m] = check_win(state[m*9 : m*9+9])
             
-            # Recurse into Minimax
             score = self.alpha_beta(state, macro_state, move, self.depth - 1, alpha, beta, False, player, s_time)
             
-            # Undo move
             state[move] = "."
             macro_state[m] = old_macro
 
@@ -169,16 +158,13 @@ class MinimaxBot:
 
         return best_move
 
-# =============================================================================
-# CLI Game Loop for testing
-# =============================================================================
+# quick CLI tester
 if __name__ == "__main__":
     def print_cli_board(state):
         for i in range(9):
             if i % 3 == 0: print("-" * 25)
             row = []
             for j in range(9):
-                # Map standard row/col to our block layout
                 m = (i // 3) * 3 + (j // 3)
                 l = (i % 3) * 3 + (j % 3)
                 row.append(state[m * 9 + l])
@@ -189,13 +175,14 @@ if __name__ == "__main__":
     board = ["."] * 81
     macro = ["."] * 9
     prev = None
-    bot = MinimaxBot(depth=4) # Depth 4 is usually safe for python without timing out
+    
+    # sticking to depth 4 so this doesn't time out the professor's test script.
+    bot = MinimaxBot(depth=4) 
 
-    print("Rose (X) vs Daisy (O) - Minimax Engine")
+    print("P1 (X) vs AI (O) - Minimax CLI Test")
     print_cli_board(board)
 
     while check_win(macro) == "." and "." in macro:
-        # Human Move
         valid = bot.get_valid_moves(board, macro, prev)
         print(f"Valid indices: {valid}")
         move = int(input("Enter move (0-80): "))
@@ -210,13 +197,12 @@ if __name__ == "__main__":
         print_cli_board(board)
 
         if check_win(macro) != ".":
-            print("Rose Wins!")
+            print("P1 Wins!")
             break
 
-        # Bot Move
-        print("Daisy is thinking...")
+        print("AI is calculating...")
         move = bot.get_best_move(board, macro, prev, "O")
-        print(f"Daisy plays: {move}")
+        print(f"AI plays: {move}")
         board[move] = "O"
         m = move // 9
         if macro[m] == ".": macro[m] = check_win(board[m*9 : m*9+9])
@@ -224,5 +210,5 @@ if __name__ == "__main__":
         print_cli_board(board)
 
         if check_win(macro) != ".":
-            print("Daisy Wins!")
+            print("AI Wins!")
             break
