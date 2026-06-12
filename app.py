@@ -1,19 +1,18 @@
-"""
-app.py — Flask web server for Floral Ultimate Tic-Tac-Toe (Minimax AI)
-"""
+# app.py
+# flask routing for the minimax UTTT engine.
 
 import uuid
 from flask import Flask, jsonify, request, render_template
 import minimax_ttt
 
 app = Flask(__name__, template_folder='.')
-app.secret_key = 'floral-ttt-secret'
+app.secret_key = 'minimax-ttt-secret'
 
-# Global dictionary to store active games
+# holding active game states in memory.
+# spinning up a database for a local class project is overkill.
 games = {}
 
 def format_state(board, macro, prev_move, turn):
-    """Translates the python backend state into the JSON the frontend expects."""
     terminal = minimax_ttt.check_win(macro)
     terminal = None if terminal == "." else terminal
 
@@ -57,10 +56,10 @@ def new_game():
         "human_sym": human_sym,
         "ai_sym": "O" if human_sym == "X" else "X",
         "depth": depth,
-        "turn": "X" # X (Rose) always moves first
+        "turn": "X" 
     }
 
-    # If Human chose Daisy (O), the AI plays first as Rose (X)
+    # if the human chose to go second, trigger the AI's first move immediately
     if human_sym == "O":
         bot = minimax_ttt.MinimaxBot(depth=depth)
         ai_move = bot.get_best_move(board, macro, None, "X")
@@ -93,25 +92,23 @@ def make_move():
     human_sym = game["human_sym"]
     ai_sym = game["ai_sym"]
 
-    # ── Validate the move ──────────────────────────────────────────
+    # input validation so the frontend doesn't break the game state
     bot = minimax_ttt.MinimaxBot()
     if pos not in bot.get_valid_moves(board, macro, game["prev_move"]):
         return jsonify({"error": "Invalid move"}), 400
-    # ──────────────────────────────────────────────────────────────
 
-    # --- 1. Process Human Move ---
     board[pos] = human_sym
     m = pos // 9
     if macro[m] == ".":
         macro[m] = minimax_ttt.check_win(board[m*9 : m*9+9])
     prev_move = pos
 
-    # Check if the human just won the game
+    # early return if the human just ended the game
     if minimax_ttt.check_win(macro) != ".":
         state_dict = format_state(board, macro, prev_move, ai_sym)
         return jsonify({"state": state_dict})
 
-    # --- 2. Process AI Move ---
+    # trigger the alpha-beta pruner
     bot = minimax_ttt.MinimaxBot(depth=game["depth"])
     ai_move = bot.get_best_move(board, macro, prev_move, ai_sym)
 
@@ -122,7 +119,6 @@ def make_move():
             macro[m] = minimax_ttt.check_win(board[m*9 : m*9+9])
         prev_move = ai_move
 
-    # Save state
     game["prev_move"] = prev_move
     game["turn"] = human_sym
 
@@ -130,6 +126,4 @@ def make_move():
     return jsonify({"state": state_dict})
 
 if __name__ == '__main__':
-    print("\n  Floral Ultimate Tic-Tac-Toe Server Running!")
-    print("  Open http://127.0.0.1:5000 in your browser\n")
     app.run(debug=True, port=5000)
