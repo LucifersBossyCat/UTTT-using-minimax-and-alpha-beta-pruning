@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ultimate Tic-Tac-Toe · Floral</title>
+  <title>Ultimate Tic-Tac-Toe | Alpha-Beta</title>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
-    /* ── Tokens: Pastel & Floral ─────────────────────────────────── */
+    /* color palette. cottagecore. */
     :root {
       --bg:        #faf7f2;
       --bg2:       #f5f0e6;
@@ -49,7 +49,7 @@
       padding: 1.5rem 1rem 4rem;
     }
 
-    /* ── Decorative SVG art pieces (Vines) ───────────────────────── */
+    /* background stuff */
     .art-corner { position: fixed; pointer-events: none; opacity: 0.3; z-index: 0; }
     .art-corner.tl { top: 0; left: 0; }
     .art-corner.br { bottom: 0; right: 0; transform: rotate(180deg); }
@@ -63,13 +63,12 @@
 
     .card { background: var(--surface); border: 2px solid var(--border); border-radius: 20px; box-shadow: 0 4px 20px rgba(130, 110, 90, 0.05); }
 
-    /* ── Setup Panel ─────────────────────────────────────────────── */
     #setup-panel { width: 100%; max-width: 400px; padding: 2rem; margin: 0 auto 1.5rem; }
     #setup-panel h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.6rem; text-align: center; }
     .field { margin-bottom: 1.1rem; }
     .field label { display: block; font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.45rem; font-weight: 600; }
 
-    /* Symbol picker */
+    /* symbol picker */
     .sym-btns { display: flex; gap: 0.6rem; }
     .sym-btn { flex: 1; padding: 1rem 0.5rem; border-radius: 16px; border: 2px solid var(--border); background: var(--bg3); color: var(--text-dim); cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
     .sym-btn small { font-size: 0.65rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; }
@@ -86,7 +85,7 @@
     .start-btn { width: 100%; margin-top: 1.6rem; padding: 0.9rem; border-radius: 14px; border: none; background: var(--sage2); color: #fff; font-family: var(--font); font-weight: 700; font-size: 1rem; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
     .start-btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(143, 168, 148, 0.4); }
     
-    /* Engine Controls */
+    /* engine toggles */
     .toggle-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text); font-weight: 600;}
     .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
     .switch input { opacity: 0; width: 0; height: 0; }
@@ -95,22 +94,20 @@
     .switch input:checked + .slider { background: #eef5ef; border-color: var(--sage); }
     .switch input:checked + .slider::before { transform: translateX(20px); background: var(--sage2); box-shadow: 0 0 5px var(--sage2); }
 
-    /* ── Game Layout ─────────────────────────────────────────────── */
+    /* game layout */
     #game-area { display: none; width: 100%; }
     .layout { display: flex; gap: 1.5rem; align-items: flex-start; width: 100%; max-width: 900px; margin: 0 auto; }
 
-    /* Removed the problematic math gradients. Relying on bg contrast and gap instead. */
+    /* dropping the complex gradients, relying on bg contrast and gap instead. */
     #board {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap-macro); width: var(--board-size); padding: var(--board-pad); border-radius: 24px; background: var(--bg2); border: 2px solid var(--border); box-shadow: 0 8px 30px rgba(150, 140, 130, 0.15);
     }
 
     .small-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap-micro); padding: 6px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface); transition: all 0.3s ease; position: relative; overflow: hidden; aspect-ratio: 1; }
     
-    /* Strong glow for the active board area */
     .small-board.active { border-color: var(--sage); background: #fdfefd; box-shadow: 0 0 18px rgba(143, 168, 148, 0.45), inset 0 0 10px rgba(143, 168, 148, 0.15); }
     .small-board.inactive { opacity: 0.5; filter: grayscale(0.3); }
 
-    /* Won sub-board glows */
     .small-board.won-rose { background: #fff0f3; border-color: var(--rose); box-shadow: 0 0 15px rgba(244, 179, 194, 0.4); }
     .small-board.won-daisy { background: #fffcf0; border-color: var(--daisy); box-shadow: 0 0 15px rgba(250, 224, 137, 0.4); }
     .small-board.won-d { background: var(--bg3); border-color: var(--border2); opacity: 0.6; }
@@ -118,28 +115,25 @@
 
     .cell { aspect-ratio: 1; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; cursor: default; transition: all 0.2s ease; position: relative; }
     
-    /* Playable cell glows */
     .cell.playable { cursor: pointer; border-color: var(--sage); background: #ffffff; }
     .cell.playable:hover { background: #eef5ef; transform: scale(1.08); box-shadow: 0 0 12px rgba(143, 168, 148, 0.6); z-index: 2; border-color: var(--sage2); }
     .cell.last-move { border-color: var(--sage2) !important; background: #e8f0ea; box-shadow: inset 0 0 8px rgba(143, 168, 148, 0.2); }
 
-    /* SVGs Glows */
     .cell svg { width: 65%; height: 65%; }
     .rose-svg { filter: drop-shadow(0 0 6px rgba(217, 122, 140, 0.7)); }
     .daisy-svg { filter: drop-shadow(0 0 6px rgba(212, 168, 60, 0.7)); }
 
-    /* ── Sidebar ─────────────────────────────────────────────────── */
+    /* sidebar */
     .sidebar { display: flex; flex-direction: column; gap: 1rem; min-width: 190px; flex-shrink: 0; }
     .panel { padding: 1.2rem; }
     .panel-title { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-mute); margin-bottom: 0.8rem; font-weight: 700; }
 
     #status-text { font-size: 0.95rem; font-weight: 600; color: var(--text); }
     .turn-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.4rem; vertical-align: middle; transition: all 0.3s; }
-    /* Turn indicator glow */
+    
     .turn-dot.rose-dot { background: var(--rose2); box-shadow: 0 0 10px var(--rose2); }
     .turn-dot.daisy-dot { background: var(--daisy2); box-shadow: 0 0 10px var(--daisy2); }
 
-    /* Score */
     .score-row { display: flex; justify-content: space-between; align-items: center; padding: 0.3rem 0; font-size: 0.9rem; font-weight: 600;}
     .score-sym { display: flex; align-items: center; gap: 0.5rem; }
     .score-sym svg { width: 18px; height: 18px; }
@@ -159,7 +153,7 @@
     .action-btn:hover { border-color: var(--sage); background: #f2f7f3; color: var(--sage2); box-shadow: 0 2px 8px rgba(181, 201, 184, 0.3); }
     .action-btn.primary { background: #f2f7f3; border-color: var(--sage); color: var(--sage2); }
 
-    /* Result overlay */
+    /* result overlay */
     #result-overlay { display: none; position: fixed; inset: 0; background: rgba(250,247,242,0.85); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; }
     #result-overlay.show { display: flex; }
     .result-box { text-align: center; padding: 3rem; max-width: 360px; width: 90%; box-shadow: 0 10px 40px rgba(130, 110, 90, 0.1); border-color: var(--border2); }
@@ -195,11 +189,11 @@
 
 <header>
   <h1>Ultimate Tic-Tac-Toe</h1>
-  <div class="header-sub">Rose &amp; Daisy</div>
+  <div class="header-sub">Minimax Engine UI</div>
 </header>
 
 <div id="setup-panel" class="card">
-  <h2>Start a Garden</h2>
+  <h2>Game Setup</h2>
   <div class="field">
     <label>Play as</label>
     <div class="sym-btns">
@@ -208,7 +202,7 @@
           <path d="M16 28 C 16 28, 6 18, 10 10 C 12 6, 20 6, 22 10 C 26 18, 16 28, 16 28 Z" fill="#f4b3c2" stroke="#d97a8c" stroke-width="2" stroke-linejoin="round"/>
           <path d="M10 10 C 16 16, 22 10, 22 10" stroke="#d97a8c" stroke-width="2" stroke-linecap="round"/>
         </svg>
-        <small>Rose · First</small>
+        <small>P1 (X)</small>
       </button>
       <button class="sym-btn" data-sym="O" onclick="selectSym('O')">
         <svg viewBox="0 0 32 32" width="36" height="36" class="daisy-svg" fill="none">
@@ -222,7 +216,7 @@
           <path d="M20.3 11.7 C 24.5 7.5, 20.3 5.3, 20.3 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 20.3 11.7)"/>
           <path d="M11.7 20.3 C 7.5 24.5, 11.7 26.7, 11.7 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 11.7 20.3)"/>
         </svg>
-        <small>Daisy · Second</small>
+        <small>P2 (O)</small>
       </button>
     </div>
   </div>
@@ -232,10 +226,10 @@
     <select id="time-select">
       <option value="3">Fast (Depth 3)</option>
       <option value="5" selected>Normal (Depth 5)</option>
-      <option value="7">Strong (Depth 7)</option>
+      <option value="7">Deep Search (Depth 7)</option>
     </select>
   </div>
-  <button class="start-btn" onclick="startGame()">Start game</button>
+  <button class="start-btn" onclick="startGame()">Start Engine</button>
 </div>
 
 <div id="game-area">
@@ -248,8 +242,8 @@
       </div>
       <div class="panel card">
         <div class="panel-title">Score</div>
-        <div class="score-row"><span class="score-sym" id="score-rose-label">Rose</span><span class="score-val rose-val" id="score-rose">0</span></div>
-        <div class="score-row"><span class="score-sym">Daisy</span><span class="score-val daisy-val" id="score-daisy">0</span></div>
+        <div class="score-row"><span class="score-sym" id="score-rose-label">P1</span><span class="score-val rose-val" id="score-rose">0</span></div>
+        <div class="score-row"><span class="score-sym">P2</span><span class="score-val daisy-val" id="score-daisy">0</span></div>
         <div class="score-row"><span class="score-sym" style="color:var(--text-dim)">Draw</span><span class="score-val" id="score-draw" style="color:var(--text-dim)">0</span></div>
       </div>
       <div class="panel card">
@@ -257,7 +251,7 @@
         <div class="macro-mini" id="macro-mini"></div>
       </div>
       <div class="panel card">
-        <button class="action-btn primary" onclick="newGameSameSettings()">↺ New game</button>
+        <button class="action-btn primary" onclick="newGameSameSettings()">↺ New Game</button>
         <button class="action-btn" onclick="reconfigure()">⚙ Settings</button>
       </div>
     </div>
@@ -267,9 +261,9 @@
 <div id="result-overlay">
   <div class="result-box card">
     <div class="result-icon" id="result-icon"></div>
-    <h2 id="result-title">Rose wins</h2>
-    <p id="result-sub">Beautifully played.</p>
-    <button class="btn-play-again" onclick="newGameSameSettings()">Play again</button>
+    <h2 id="result-title">Victory</h2>
+    <p id="result-sub">Game over.</p>
+    <button class="btn-play-again" onclick="newGameSameSettings()">Play Again</button>
   </div>
 </div>
 
@@ -351,7 +345,7 @@
     const dot = document.getElementById('turn-dot'); const msg = document.getElementById('status-msg');
     if (state.terminal) return;
     dot.className = 'turn-dot ' + (state.turn === 'X' ? 'rose-dot' : 'daisy-dot');
-    msg.textContent = state.turn === humanSym ? 'Your turn' : 'AI is thinking...';
+    msg.textContent = state.turn === humanSym ? 'Your turn' : 'AI is calculating...';
   }
 
   async function playMove(pos) {
@@ -368,9 +362,25 @@
     scores[result]++;
     document.getElementById('score-rose').textContent = scores.X; document.getElementById('score-daisy').textContent = scores.O; document.getElementById('score-draw').textContent = scores.D;
     const iconEl = document.getElementById('result-icon'); const title = document.getElementById('result-title'); const sub = document.getElementById('result-sub');
-    if (result === 'D') { iconEl.innerHTML = drawSVG(56); title.textContent = 'Draw'; title.style.color = 'var(--text-dim)'; sub.textContent = 'A peaceful tie.'; } 
-    else if (result === 'X') { iconEl.innerHTML = roseSVG(56); title.textContent = result===humanSym?'You win':'Rose wins'; title.className = 'rose-result'; sub.textContent = 'Beautifully played.'; } 
-    else { iconEl.innerHTML = daisySVG(56); title.textContent = result===humanSym?'You win':'Daisy wins'; title.className = 'daisy-result'; sub.textContent = 'Beautifully played.'; }
+    
+    if (result === 'D') { 
+      iconEl.innerHTML = drawSVG(56); 
+      title.textContent = 'Draw'; 
+      title.style.color = 'var(--text-dim)'; 
+      sub.textContent = 'Board locked.'; 
+    } 
+    else if (result === 'X') { 
+      iconEl.innerHTML = roseSVG(56); 
+      title.textContent = result === humanSym ? 'Victory' : 'Defeat'; 
+      title.className = 'rose-result'; 
+      sub.textContent = 'Game over.'; 
+    } 
+    else { 
+      iconEl.innerHTML = daisySVG(56); 
+      title.textContent = result === humanSym ? 'Victory' : 'Defeat'; 
+      title.className = 'daisy-result'; 
+      sub.textContent = 'Game over.'; 
+    }
     document.getElementById('result-overlay').classList.add('show');
   }
 
