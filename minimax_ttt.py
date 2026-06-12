@@ -4,10 +4,11 @@ import time
 WIN_LINES = [(0,1,2),(3,4,5),(6,7,8),(0,3,6),(1,4,7),(2,5,8),(0,4,8),(2,4,6)]
 
 def check_win(board_9):
-    """Checks a 9-length list for a winner."""
     for a, b, c in WIN_LINES:
         if board_9[a] != "." and board_9[a] == board_9[b] == board_9[c]:
             return board_9[a]
+    if "." not in board_9:
+        return "D"
     return "."
 
 def get_opponent(player):
