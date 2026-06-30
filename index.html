@@ -200,16 +200,19 @@
         <small>P1 (X)</small>
       </button>
       <button class="sym-btn" data-sym="O" onclick="selectSym('O')">
+        <!-- DAISY: correct rotation assignments -->
         <svg viewBox="0 0 32 32" width="36" height="36" class="daisy-svg" fill="none">
           <circle cx="16" cy="16" r="4" fill="#d4a83c" />
           <path d="M16 10 C 13 4, 19 4, 16 10 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/>
           <path d="M16 22 C 13 28, 19 28, 16 22 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/>
           <path d="M10 16 C 4 13, 4 19, 10 16 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/>
           <path d="M22 16 C 28 13, 28 19, 22 16 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/>
-          <path d="M11.7 11.7 C 7.5 7.5, 11.7 5.3, 11.7 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(45 11.7 11.7)"/>
-          <path d="M20.3 20.3 C 16 16, 20.3 14, 20.3 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(45 20.3 20.3)"/>
-          <path d="M20.3 11.7 C 24.5 7.5, 20.3 5.3, 20.3 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 20.3 11.7)"/>
-          <path d="M11.7 20.3 C 7.5 24.5, 11.7 26.7, 11.7 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 11.7 20.3)"/>
+          <!-- diagonal petals: top-left points up-left, top-right points up-right -->
+          <path d="M11.7 11.7 C 8.7 5.7, 14.7 5.7, 11.7 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 11.7 11.7)"/>
+          <path d="M20.3 11.7 C 17.3 5.7, 23.3 5.7, 20.3 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(45 20.3 11.7)"/>
+          <!-- diagonal petals: bottom-right points down-right, bottom-left points down-left -->
+          <path d="M20.3 20.3 C 17.3 26.3, 23.3 26.3, 20.3 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 20.3 20.3)"/>
+          <path d="M11.7 20.3 C 8.7 26.3, 14.7 26.3, 11.7 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(45 11.7 20.3)"/>
         </svg>
         <small>P2 (O)</small>
       </button>
@@ -264,7 +267,9 @@
 
 <script>
   function roseSVG(size = 26) { return `<svg viewBox="0 0 32 32" width="${size}" height="${size}" class="rose-svg" fill="none"><path d="M16 28 C 16 28, 6 18, 10 10 C 12 6, 20 6, 22 10 C 26 18, 16 28, 16 28 Z" fill="#f4b3c2" stroke="#d97a8c" stroke-width="2" stroke-linejoin="round"/><path d="M10 10 C 16 16, 22 10, 22 10" stroke="#d97a8c" stroke-width="2" stroke-linecap="round"/></svg>`; }
-  function daisySVG(size = 26) { return `<svg viewBox="0 0 32 32" width="${size}" height="${size}" class="daisy-svg" fill="none"><circle cx="16" cy="16" r="4" fill="#d4a83c" /><path d="M16 10 C 13 4, 19 4, 16 10 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/><path d="M16 22 C 13 28, 19 28, 16 22 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/><path d="M10 16 C 4 13, 4 19, 10 16 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/><path d="M22 16 C 28 13, 28 19, 22 16 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/><path d="M11.7 11.7 C 7.5 7.5, 11.7 5.3, 11.7 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(45 11.7 11.7)"/><path d="M20.3 20.3 C 16 16, 20.3 14, 20.3 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(45 20.3 20.3)"/><path d="M20.3 11.7 C 24.5 7.5, 20.3 5.3, 20.3 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 20.3 11.7)"/><path d="M11.7 20.3 C 7.5 24.5, 11.7 26.7, 11.7 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 11.7 20.3)"/></svg>`; }
+  // daisySVG with corrected rotation angles
+  function daisySVG(size = 26) { return `<svg viewBox="0 0 32 32" width="${size}" height="${size}" class="daisy-svg" fill="none"><circle cx="16" cy="16" r="4" fill="#d4a83c" /><path d="M16 10 C 13 4, 19 4, 16 10 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/><path d="M16 22 C 13 28, 19 28, 16 22 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/><path d="M10 16 C 4 13, 4 19, 10 16 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/><path d="M22 16 C 28 13, 28 19, 22 16 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5"/><path d="M11.7 11.7 C 8.7 5.7, 14.7 5.7, 11.7 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 11.7 11.7)"/><path d="M20.3 11.7 C 17.3 5.7, 23.3 5.7, 20.3 11.7 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(45 20.3 11.7)"/><path d="M20.3 20.3 C 17.3 26.3, 23.3 26.3, 20.3 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(-45 20.3 20.3)"/><path d="M11.7 20.3 C 8.7 26.3, 14.7 26.3, 11.7 20.3 Z" fill="#fae089" stroke="#d4a83c" stroke-width="1.5" transform="rotate(45 11.7 20.3)"/></svg>`; }
+
   function drawSVG(size = 26) { return `<svg viewBox="0 0 32 32" width="${size}" height="${size}" fill="none"><text x="16" y="22" text-anchor="middle" font-size="18" fill="#bcaea1" font-weight="bold">—</text></svg>`; }
 
   let gameId = null; let humanSym = 'X'; let aiSym = 'O'; let scores = {X: 0, O: 0, D: 0}; let aiDepth = 5; let busy = false; window._lastState = null;
@@ -369,7 +374,7 @@
     renderBoard(preTerminalState);
     updateStatus(preTerminalState);
 
-    // one more small pause before slapping the win screen overlay in the user's face
+    // one more small pause before the win screen overlays in the user's face
     if (data.state.terminal) {
       await new Promise(r => setTimeout(r, 1400));
       renderBoard(data.state); updateStatus(data.state);
